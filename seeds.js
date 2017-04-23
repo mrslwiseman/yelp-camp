@@ -40,18 +40,18 @@ function seedDB(){
         if (err) {console.log(err)}
         else {
           console.log(campground + " Campground added");
-          Comment.create({
-            text: "Great campground, sandflies were TERRIBLE!",
-            author: "Bob"
-          }, (err, comment) => {
-            if(err) {
-              console.log(err)
-            } else {
-              camp.comments.push(comment);
-              camp.save();
-              console.log("Comment added")
-            }
-          })
+          // Comment.create({
+          //   text: "Great campground, sandflies were TERRIBLE!",
+          //   author: "Bob"
+          // }, (err, comment) => {
+          //   if(err) {
+          //     console.log(err)
+          //   } else {
+          //     camp.comments.push(comment);
+          //     camp.save();
+          //     console.log("Comment added")
+          //   }
+          // })
 
 
         }

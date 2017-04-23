@@ -1,4 +1,4 @@
-<% include partials/header %>
+<% include ../partials/header %>
 
 
 <h1>Campground page</h1>
@@ -13,4 +13,7 @@
 <p>"<%= comment.text %>"
 <span>-<strong><%= comment.author %> </strong></span></p>
 <% }) %>
-<% include partials/footer %>
+
+<a class="btn btn-default btn-primary" type="submit" href="<%=campground._id%>/comments/new">Add comment</a>
+
+<% include ../partials/footer %>

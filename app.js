@@ -24,13 +24,17 @@ app.get("/", (req,res) => {
 	res.render("home")
 })
 
+
+
+
+
 // RESTful conventions to keep .get and .post on same route
 // INDEX ROUTE - show all campgrounds
 app.get("/campgrounds", (req,res) => {
   // get all campgrounds from DB
 Campground.find({}, (err, allcampgrounds) => {
   if(err) {return console.log(err)} else {
-    res.render("campgrounds", {campgrounds:allcampgrounds})
+    res.render("campgrounds/campgrounds", {campgrounds:allcampgrounds})
 
   }
 })
@@ -60,7 +64,7 @@ Campground.create({
 
 // NEW ROUTE - display form to add new campgrounds
 app.get("/campgrounds/new", (req,res) => {
-	res.render("new")
+	res.render("campgrounds/new")
 })
 
 
@@ -78,7 +82,7 @@ Campground.findById(req.params.id).populate("comments").exec( (err, foundCampgro
           console.log(err)
        } else {
 
-    res.render("show", {campground: foundCampground})
+    res.render("campgrounds/show", {campground: foundCampground})
   }
 
 
@@ -86,6 +90,54 @@ Campground.findById(req.params.id).populate("comments").exec( (err, foundCampgro
 
 
 })
+
+
+
+// ============================
+// COMMENTS ROUTE
+// ============================
+// ADD COMMENT ROUTE
+app.get("/campgrounds/:id/comments/new", (req,res) => {
+  Campground.findById(req.params.id, (err, campground) => {
+    if(err){
+      console.log(err)
+      } else {
+        res.render("comments/new", {campground:campground});
+    }
+  })
+
+})
+
+app.post("/campgrounds/:id/comments", (req,res) => {
+console.log(req.params.id)
+Campground.findById(req.params.id, (err, campground) => {
+  if(err) {
+    console.log(err)
+  } else {
+    Comment.create({
+      text : req.body.comment.text,
+      author: req.body.comment.author
+    }, (err, comment) => {
+      campground.comments.push(comment);
+      campground.save();
+      res.redirect("/campgrounds/" + req.params.id)
+    })
+  }
+
+})
+
+
+
+
+
+
+
+
+
+
+
+})
+
 
 
 // set up listening
