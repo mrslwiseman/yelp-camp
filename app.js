@@ -1,24 +1,40 @@
-const express = require("express"),
-  ejs = require("ejs"),
-  bodyParser = require("body-parser"),
-  mongoose = require("mongoose"),
-  Campground = require('./models/campgrounds'),
-  Comment = require('./models/comment'),
-  seedDB = require('./seeds');
-seedDB();
+const express     = require("express"),
+  ejs             = require("ejs"),
+  bodyParser      = require("body-parser"),
+  mongoose        = require("mongoose"),
+  Campground      = require('./models/campgrounds'),
+  Comment         = require('./models/comment'),
+  seedDB          = require('./seeds');
+  passport        = require('passport'),
+  LocalStrategy   = require('passport-local'),
+  User = require('./models/user.js'),
+  app = express();
 
-let app = express();
+
+seedDB();
 
 app.set("view engine", "ejs");
 app.use(express.static('public'))
-app.use(bodyParser.urlencoded({
-  extended: true
+app.use(bodyParser.urlencoded({extended: true
 }))
 
 // connect to mongodb
 mongoose.connect("mongodb://localhost:27017/yelp-camp");
 
 
+// PASSPORT CONFIGURATION
+
+app.use(require('express-session')({
+  secret: "a random string to generate random hash",
+  resave: false,
+  saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy( User.authenticate() ));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 // set up routes
 
@@ -32,7 +48,7 @@ app.get("/", (req, res) => {
 
 // RESTful conventions to keep .get and .post on same route
 // INDEX ROUTE - show all campgrounds
-app.get("/campgrounds", (req, res) => {
+app.get("/campgrounds", isLoggedIn,(req, res) => {
   // get all campgrounds from DB
   Campground.find({}, (err, allcampgrounds) => {
     if (err) {
@@ -133,18 +149,67 @@ app.post("/campgrounds/:id/comments", (req, res) => {
         res.redirect("/campgrounds/" + req.params.id)
       })
     }
-
   })
-
-
-
-
-
-
-
-
-
 })
+
+
+// AUTH ROUTES
+
+// show register form
+
+app.get("/register", (req,res) => {
+  res.render("register")
+})
+
+// add new user
+
+app.post("/register", (req,res)=> {
+  User.register(new User({username: req.body.username}), req.body.password, function(err, user) {
+    if(err) {
+      console.log(err);
+      return res.render("register");
+    };
+      passport.authenticate("local")(req,res, function() {
+      res.redirect("/campgrounds")
+    })
+  })
+})
+
+// LOGIN ROUTES
+//show login form
+app.get("/login", (req,res) => {
+  res.render("login")
+})
+
+// LOGIN LOGIC
+app.post("/login", passport.authenticate("local",
+{
+  successRedirect: "/campgrounds",
+  failureRedirect: "/login"
+}),(req,res) => {})
+
+
+app.get("/logout", (req,res) => {
+  req.logout();
+  res.redirect("/")
+})
+
+
+// DEFINE A FUNCTION TO CHECK IF LOGGED IN:
+function isLoggedIn(req,res,next){
+  //next is next thing to be called
+  if(req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/login")
+}
+
+
+
+
+
+
+
 
 
 
