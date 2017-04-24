@@ -30,11 +30,19 @@ app.use(require('express-session')({
   saveUninitialized: false
 }));
 
+
+
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy( User.authenticate() ));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
+
+app.use(function(req, res, next){
+  res.locals.user = req.user;
+  next();
+});
+
 
 // set up routes
 
@@ -48,9 +56,11 @@ app.get("/", (req, res) => {
 
 // RESTful conventions to keep .get and .post on same route
 // INDEX ROUTE - show all campgrounds
-app.get("/campgrounds", isLoggedIn,(req, res) => {
+app.get("/campgrounds",(req, res) => {
+
   // get all campgrounds from DB
   Campground.find({}, (err, allcampgrounds) => {
+
     if (err) {
       return console.log(err)
     } else {
@@ -63,6 +73,7 @@ app.get("/campgrounds", isLoggedIn,(req, res) => {
 })
 //CREATE ROUTE - add new campground to DB
 app.post("/campgrounds", (req, res) => {
+
   let name = req.body.name;
   let image = req.body.image;
   let description = req.body.description;
@@ -121,7 +132,7 @@ app.get("/campgrounds/:id", (req, res) => {
 // COMMENTS ROUTE
 // ============================
 // ADD COMMENT ROUTE
-app.get("/campgrounds/:id/comments/new", (req, res) => {
+app.get("/campgrounds/:id/comments/new", isLoggedIn, (req, res) => {
   Campground.findById(req.params.id, (err, campground) => {
     if (err) {
       console.log(err)
